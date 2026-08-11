@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家計簿アプリ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="app-header">
+    <h1>💰 家計簿アプリ</h1>
+    <label class="month-picker">
+      対象月
+      <input type="month" id="monthInput">
+    </label>
+  </header>
+
+  <section class="summary">
+    <div class="summary-card income">
+      <span class="label">収入</span>
+      <span class="value" id="totalIncome">¥0</span>
+    </div>
+    <div class="summary-card expense">
+      <span class="label">支出</span>
+      <span class="value" id="totalExpense">¥0</span>
+    </div>
+    <div class="summary-card balance">
+      <span class="label">残高（貯金）</span>
+      <span class="value" id="totalBalance">¥0</span>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <h2>入力</h2>
+    <form id="txForm">
+      <div class="type-toggle">
+        <label><input type="radio" name="type" value="expense" checked> 支出</label>
+        <label><input type="radio" name="type" value="income"> 収入</label>
+      </div>
+      <div class="form-row">
+        <label>日付
+          <input type="date" id="dateInput" required>
+        </label>
+        <label>カテゴリ
+          <select id="categoryInput" required></select>
+        </label>
+      </div>
+      <div class="form-row">
+        <label>金額
+          <input type="number" id="amountInput" min="1" step="1" placeholder="例）1500" required>
+        </label>
+        <label>メモ
+          <input type="text" id="memoInput" placeholder="例）スーパーで買い物">
+        </label>
+      </div>
+      <button type="submit">追加する</button>
+    </form>
+  </section>
+
+  <section class="breakdown-section" id="breakdownSection">
+    <h2>支出の内訳</h2>
+    <div class="breakdown" id="breakdown">
+      <div class="pie-wrap">
+        <div class="pie" id="pieChart"></div>
+      </div>
+      <ul class="legend" id="legend"></ul>
+    </div>
+    <p class="empty-message" id="breakdownEmpty">この月の支出データはまだありません。</p>
+  </section>
+
+  <section class="list-section">
+    <h2>明細一覧</h2>
+    <table class="tx-table">
+      <thead>
+        <tr>
+          <th>日付</th>
+          <th>種別</th>
+          <th>カテゴリ</th>
+          <th>メモ</th>
+          <th>金額</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="txTableBody"></tbody>
+    </table>
+    <p class="empty-message" id="listEmpty">この月の記録はまだありません。</p>
+  </section>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
