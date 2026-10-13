@@ -2,89 +2,155 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>家計簿アプリ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>わが家の家計簿</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@700&family=IBM+Plex+Mono:wght@500&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="app">
   <header class="app-header">
-    <h1>💰 家計簿アプリ</h1>
-    <label class="month-picker">
-      対象月
-      <input type="month" id="monthInput">
-    </label>
+    <div class="brand">
+      <h1>わが家の家計簿</h1>
+      <p class="sub">収入・支出・予算をひと月ごとに計算します</p>
+    </div>
+    <div class="month-nav">
+      <button type="button" class="icon-btn" id="prevMonth" aria-label="前の月">‹</button>
+      <input type="month" id="monthInput" aria-label="対象月">
+      <button type="button" class="icon-btn" id="nextMonth" aria-label="次の月">›</button>
+    </div>
   </header>
 
-  <section class="summary">
-    <div class="summary-card income">
+  <div class="sample-banner" id="sampleBanner" hidden>
+    <span>サンプルデータを表示中です。自分の記録を始めるときは消してください。</span>
+    <button type="button" class="ghost-btn" id="clearSample">サンプルを消して始める</button>
+  </div>
+
+  <section class="summary" aria-label="今月の集計">
+    <div class="stat">
       <span class="label">収入</span>
-      <span class="value" id="totalIncome">¥0</span>
+      <span class="value num income" id="totalIncome">¥0</span>
+      <span class="delta" id="incomeDelta"></span>
     </div>
-    <div class="summary-card expense">
+    <div class="stat">
       <span class="label">支出</span>
-      <span class="value" id="totalExpense">¥0</span>
+      <span class="value num expense" id="totalExpense">¥0</span>
+      <span class="delta" id="expenseDelta"></span>
     </div>
-    <div class="summary-card balance">
-      <span class="label">残高（貯金）</span>
-      <span class="value" id="totalBalance">¥0</span>
+    <div class="stat">
+      <span class="label">収支</span>
+      <span class="value num" id="totalBalance">¥0</span>
+      <span class="delta" id="balanceNote"></span>
+    </div>
+    <div class="stat">
+      <span class="label">貯蓄率</span>
+      <span class="value num" id="savingRate">—</span>
+      <span class="delta" id="savingNote"></span>
     </div>
   </section>
 
-  <section class="form-section">
-    <h2>入力</h2>
-    <form id="txForm">
-      <div class="type-toggle">
-        <label><input type="radio" name="type" value="expense" checked> 支出</label>
-        <label><input type="radio" name="type" value="income"> 収入</label>
-      </div>
-      <div class="form-row">
-        <label>日付
-          <input type="date" id="dateInput" required>
-        </label>
-        <label>カテゴリ
-          <select id="categoryInput" required></select>
-        </label>
-      </div>
-      <div class="form-row">
-        <label>金額
-          <input type="number" id="amountInput" min="1" step="1" placeholder="例）1500" required>
-        </label>
-        <label>メモ
-          <input type="text" id="memoInput" placeholder="例）スーパーで買い物">
-        </label>
-      </div>
-      <button type="submit">追加する</button>
-    </form>
-  </section>
+  <div class="grid">
+    <section class="panel form-panel">
+      <h2>記録する</h2>
+      <form id="txForm">
+        <div class="seg" role="radiogroup" aria-label="種別">
+          <label><input type="radio" name="type" value="expense" checked><span>支出</span></label>
+          <label><input type="radio" name="type" value="income"><span>収入</span></label>
+        </div>
+        <div class="form-row">
+          <label for="dateInput">日付
+            <input type="date" id="dateInput" required>
+          </label>
+          <label for="categoryInput">カテゴリ
+            <select id="categoryInput" required></select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label for="amountInput">金額（円）
+            <input type="number" id="amountInput" min="1" step="1" inputmode="numeric" placeholder="1500" required>
+          </label>
+          <label for="memoInput">メモ
+            <input type="text" id="memoInput" placeholder="スーパーで買い物">
+          </label>
+        </div>
+        <button type="submit" class="primary-btn">追加する</button>
+        <p class="form-msg" id="formMsg" role="status"></p>
+      </form>
+    </section>
 
-  <section class="breakdown-section" id="breakdownSection">
-    <h2>支出の内訳</h2>
-    <div class="breakdown" id="breakdown">
-      <div class="pie-wrap">
-        <div class="pie" id="pieChart"></div>
+    <section class="panel budget-panel">
+      <div class="panel-head">
+        <h2>予算と実績</h2>
+        <button type="button" class="ghost-btn" id="editBudgetBtn">予算を編集</button>
       </div>
-      <ul class="legend" id="legend"></ul>
+      <div class="budget-total" id="budgetTotal"></div>
+      <ul class="budget-list" id="budgetList"></ul>
+      <form class="budget-editor" id="budgetEditor" hidden>
+        <p class="hint">カテゴリごとの月予算（円）。0 にすると予算なしになります。</p>
+        <div class="budget-inputs" id="budgetInputs"></div>
+        <div class="row-btns">
+          <button type="submit" class="primary-btn">予算を保存</button>
+          <button type="button" class="ghost-btn" id="cancelBudget">キャンセル</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>支出の内訳</h2>
+      <div class="breakdown" id="breakdown">
+        <div class="donut" id="donut"><div class="donut-hole"><span class="num" id="donutTotal"></span><small>支出合計</small></div></div>
+        <ul class="legend" id="legend"></ul>
+      </div>
+      <p class="empty" id="breakdownEmpty" hidden>この月の支出はまだありません。</p>
+    </section>
+
+    <section class="panel">
+      <h2>直近6か月の推移</h2>
+      <div class="chart-wrap" id="trendChart"></div>
+      <div class="chart-legend">
+        <span><i class="key income"></i>収入</span>
+        <span><i class="key expense"></i>支出</span>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>明細</h2>
+      <select id="filterInput" aria-label="カテゴリで絞り込み"></select>
     </div>
-    <p class="empty-message" id="breakdownEmpty">この月の支出データはまだありません。</p>
+    <div class="table-wrap">
+      <table class="tx-table">
+        <thead>
+          <tr><th>日付</th><th>カテゴリ</th><th>メモ</th><th class="r">金額</th><th><span class="sr">削除</span></th></tr>
+        </thead>
+        <tbody id="txTableBody"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="listEmpty" hidden>この月の記録はまだありません。</p>
   </section>
 
-  <section class="list-section">
-    <h2>明細一覧</h2>
-    <table class="tx-table">
-      <thead>
-        <tr>
-          <th>日付</th>
-          <th>種別</th>
-          <th>カテゴリ</th>
-          <th>メモ</th>
-          <th>金額</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="txTableBody"></tbody>
-    </table>
-    <p class="empty-message" id="listEmpty">この月の記録はまだありません。</p>
+  <section class="panel data-panel">
+    <h2>データ</h2>
+    <p class="hint">記録はこのブラウザにだけ保存されます。別の端末に移すときは CSV を使ってください。</p>
+    <div class="row-btns">
+      <button type="button" class="ghost-btn" id="exportBtn">CSV を書き出す</button>
+      <label class="ghost-btn file-btn" for="importInput">CSV を読み込む
+        <input type="file" id="importInput" accept=".csv,text/csv">
+      </label>
+      <button type="button" class="ghost-btn danger" id="resetBtn">すべて削除</button>
+    </div>
+    <div class="confirm" id="resetConfirm" hidden>
+      <span>すべての記録と予算を削除します。元に戻せません。</span>
+      <button type="button" class="danger-btn" id="resetYes">削除する</button>
+      <button type="button" class="ghost-btn" id="resetNo">やめる</button>
+    </div>
+    <textarea id="csvOut" class="csv-out" readonly hidden aria-label="CSV"></textarea>
+    <p class="form-msg" id="dataMsg" role="status"></p>
   </section>
 </div>
 <script src="app.js"></script>
